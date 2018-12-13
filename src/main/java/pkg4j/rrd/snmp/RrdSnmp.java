@@ -40,7 +40,10 @@ public class RrdSnmp {
         File rrddir = new File("./rrd");
         rrddir.mkdir();
         File imgdir = new File("./img");
-        imgdir.mkdir();        
+        imgdir.mkdir(); 
+        /*if (!FileUtils.getFile("./rrd").exists()) try {
+            FileUtils.forceMkdir(new File("./rrd"));
+        } catch (IOException ex) {   }*/        
         try {
             rrdDb = new RrdDb(dbPrepare(rrdPathDB));
             //rrdDb = new RrdDb("./rrd/my.rrd"); // open RW exists
