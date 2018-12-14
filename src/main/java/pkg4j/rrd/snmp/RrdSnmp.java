@@ -32,9 +32,10 @@ public class RrdSnmp {
     static ConsolFun CF = ConsolFun.AVERAGE;
     static Sample sample;
     static long END;
-    static long numfor = 100;
+    static long numfor = 99;
     static RrdDb rrdDb;
     static RrdSnmp rrdSnmp;
+    static RrdGraphDef gd;
 
     static {    // analog @PostConstruct
         File rrddir = new File("./rrd");
@@ -50,26 +51,46 @@ public class RrdSnmp {
     }
 
     public static void rrdImgDraw(String fname, long step, long alltime, String title) {
-        RrdGraphDef gD = new RrdGraphDef();
-        gD.setWidth(720);
-        gD.setHeight(150);
-        gD.setFilename(fname);
-        gD.setTitle(title);
-        gD.setVerticalLabel("percent, %");
-        //gD.comment("Packet Loss in %");
-        gD.datasource("loss-average-d", rrdPathDB, DS, CF);
-        gD.setStep(step);
+        gd = new RrdGraphDef();
+        gd.setWidth(720);
+        gd.setHeight(150);
+        gd.setFilename(fname);
+        gd.setTitle(title);
+        gd.setVerticalLabel("percent, %");
+        gd.comment("comment");
+        gd.datasource("loss-average-d", rrdPathDB, DS, CF);
+        gd.setStep(step);
         //gD.setStartTime(-86400L);
         //gD.setEndTime(System.currentTimeMillis() / 1000);        
         //gD.setTimeSpan(-alltime, System.currentTimeMillis() / 1000+numfor*60L);
-        gD.setTimeSpan(-alltime + numfor * 60L, Util.getTimestamp() + numfor * 60L);
+        gd.setTimeSpan(-alltime + numfor * 60L, Util.getTimestamp() + numfor * 60L);
         //gD.setColor(RrdGraphConstants.COLOR_GRID, Color.GREEN);
         //gDef_d.line("loss-average", Color.MAGENTA, "Packet Loss in %");
-        gD.area("loss-average-d", Color.MAGENTA, "Packet Loss in %");
-        //gDef_d.hrule(2568, Color.GREEN, "hrule");
-        gD.setImageFormat("png");
+        gd.area("loss-average-d", Color.MAGENTA, "Packet Loss in %");
+            gd.hrule(20.0, Color.GREEN, "hrule");
+            gd.hspan(5.0, 9.0, Color.LIGHT_GRAY, "hspan");
+            //gd.setAltAutoscale(true);
+            gd.setAltAutoscaleMax(true);
+            gd.setAltAutoscaleMin(false);
+            //gd.setAltYGrid(true);
+            //gd.setAltYMrtg(true);
+            gd.setAntiAliasing(true);
+            //gd.setBase(1.0);
+            gd.setDrawXGrid(true);
+            gd.setDrawYGrid(true);
+            gd.setForceRulesLegend(true);
+            gd.setInterlaced(true);
+            //gd.setLogarithmic(true);
+            gd.setMaxValue(100.0);
+            gd.setMinValue(0.0);
+            gd.setPoolUsed(true);
+            //gd.setRigid(true);
+            gd.setShowSignature(true);
+            gd.setTextAntiAliasing(true);
+            //gd.setUnit("unit");
+        gd.setImageFormat("png");
         try {
-            RrdGraph graph = new RrdGraph(gD);
+            RrdGraph graph = new RrdGraph(gd);
         } catch (IOException ex) {
         }
     }
