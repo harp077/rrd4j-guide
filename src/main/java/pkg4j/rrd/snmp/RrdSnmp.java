@@ -28,8 +28,10 @@ public class RrdSnmp {
             step_m = 1680L,
             heartbeat = 60L;
     static String rrdPathDB = "./rrd/my.rrd";
-    static String DS = "loss-ds";
-    static double loss;
+    static String DSinp = "ds-inp";
+    static String DSout = "ds-out";
+    static double input;
+    static double output;
     static ConsolFun CF = ConsolFun.AVERAGE;
     static Sample sample;
     static long END;
@@ -62,15 +64,16 @@ public class RrdSnmp {
         gd.setTitle(title);
         gd.setVerticalLabel("percent, %");
         //gd.comment("comment");
-        gd.datasource("loss-average-d", rrdPathDB, DS, CF);
+        gd.datasource(DSinp+"1", rrdPathDB, DSinp, CF);
+        gd.datasource(DSout+"1", rrdPathDB, DSout, CF);
         gd.setStep(step);
         //gD.setStartTime(-86400L);
         //gD.setEndTime(System.currentTimeMillis() / 1000);        
         //gD.setTimeSpan(-alltime, System.currentTimeMillis() / 1000+numfor*60L);
         gd.setTimeSpan(-alltime + numfor * 60L, Util.getTimestamp() + numfor * 60L);
         //gd.setColor(RrdGraphConstants.COLOR_GRID, Color.LIGHT_GRAY);
-        //gd.line("loss-average", Color.MAGENTA, "Packet Loss in %");
-        gd.area("loss-average-d", Color.ORANGE, "Packet Loss in %");
+        gd.area(DSinp+"1", Color.GREEN, "out %");
+        gd.line(DSout+"1", Color.BLUE, "in %");        
             //gd.hrule(20.0, Color.GREEN, "hrule");
             //gd.hspan(5.0, 9.0, Color.LIGHT_GRAY, "hspan");
             //gd.setAltAutoscale(true);
@@ -101,7 +104,8 @@ public class RrdSnmp {
 
     public static RrdDef dbPrepare(String pathDB) {
         RrdDef rrdDef = new RrdDef(pathDB, step_d);
-        rrdDef.addDatasource(DS, DsType.GAUGE, heartbeat, 0.0, 100.0);
+        rrdDef.addDatasource(DSinp, DsType.GAUGE, heartbeat, 0.0, 100.0);
+        rrdDef.addDatasource(DSout, DsType.GAUGE, heartbeat, 0.0, 100.0);        
         rrdDef.addArchive(CF, 0.5, 1, 1440); // day - 1 min
         rrdDef.addArchive(CF, 0.5, 7, 1440); // week - 7 min
         rrdDef.addArchive(CF, 0.5,28, 1440); // month=28day - 28 min
@@ -114,11 +118,14 @@ public class RrdSnmp {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
                 sample = rrdDb.createSample();
-                loss = 1 + i;
-                //sample.setTime(END-30*60000+i*60000);
-                //sample.setValue(DS, loss);
-                sample.setAndUpdate(END + i * 60L + ":" + loss);
-                //sample.update();
+                input = 1 + i;
+                output = numfor - i;
+                sample.setTime(END + i * 60L);
+                sample.setValue(DSinp, input);
+                sample.setValue(DSout, output);
+                //sample.setAndUpdate(END + i * 60L + ":" + input);
+                //sample.setAndUpdate(END + i * 60L + ":" + output);
+                sample.update();
                 System.out.println("@@@ = " + i + " step, DS-names = " + sample.getDsNames()[0]);
             }
             //sample.update();
