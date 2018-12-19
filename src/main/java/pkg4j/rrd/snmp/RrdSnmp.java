@@ -39,6 +39,12 @@ public class RrdSnmp {
     static RrdDb rrdDb;
     static RrdSnmp rrdSnmp;
     static RrdGraphDef gd;
+    static double MAX_BANDWIDTH=9_999_999_999.0; // 10 GBit/s
+    // 1     Mbit/s =       999_999
+    // 10    Mbit/s =     9_999_999
+    // 100   Mbit/s =    99_999_999 
+    // 1000  Mbit/s =   999_999_999     
+    // 10000 Mbit/s = 9_999_999_999     
 
     static {    // analog @PostConstruct
         File rrddir = new File("./rrd");
@@ -88,7 +94,7 @@ public class RrdSnmp {
             //gd.setForceRulesLegend(true);
             //gd.setInterlaced(true);
             //gd.setLogarithmic(true);
-            //gd.setMaxValue(100.0);
+            //gd.setMaxValue(MAX_BANDWIDTH);
             //gd.setMinValue(0.0);
             //gd.setPoolUsed(true);
             //gd.setRigid(true);
@@ -104,8 +110,8 @@ public class RrdSnmp {
 
     public static RrdDef dbPrepare(String pathDB) {
         RrdDef rrdDef = new RrdDef(pathDB, step_d);
-        rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, 9_999888.0);
-        rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, 9_999888.0);        
+        rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);
+        rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);        
         rrdDef.addArchive(CF, 0.5, 1, 1440); // day - 1 min
         rrdDef.addArchive(CF, 0.5, 7, 1440); // week - 7 min
         rrdDef.addArchive(CF, 0.5,28, 1440); // month=28day - 28 min
@@ -118,8 +124,8 @@ public class RrdSnmp {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
                 sample = rrdDb.createSample();
-                input  = i*numfor + i*numfor*(1+Math.random());
-                output = i*numfor + i*numfor*(1+Math.random());
+                input  = input  + i*numfor*(2+Math.random())*MAX_BANDWIDTH/99999;
+                output = output + i*numfor*(1+Math.random())*MAX_BANDWIDTH/99999;
                 sample.setTime(END + i * 60L);
                 sample.setValue(DSinp, input);
                 sample.setValue(DSout, output);
