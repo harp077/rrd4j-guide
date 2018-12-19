@@ -35,7 +35,7 @@ public class RrdSnmp {
     static ConsolFun CF = ConsolFun.AVERAGE;
     static Sample sample;
     static long END;
-    static long numfor = 99;
+    static long numfor = 999;
     static RrdDb rrdDb;
     static RrdSnmp rrdSnmp;
     static RrdGraphDef gd;
@@ -62,7 +62,7 @@ public class RrdSnmp {
         gd.setHeight(150);
         gd.setFilename(fname);
         gd.setTitle(title);
-        gd.setVerticalLabel("percent, %");
+        gd.setVerticalLabel("bit/s");
         //gd.comment("comment");
         gd.datasource(DSinp+"1", rrdPathDB, DSinp, CF);
         gd.datasource(DSout+"1", rrdPathDB, DSout, CF);
@@ -72,15 +72,15 @@ public class RrdSnmp {
         //gD.setTimeSpan(-alltime, System.currentTimeMillis() / 1000+numfor*60L);
         gd.setTimeSpan(-alltime + numfor * 60L, Util.getTimestamp() + numfor * 60L);
         //gd.setColor(RrdGraphConstants.COLOR_GRID, Color.LIGHT_GRAY);
-        gd.area(DSinp+"1", Color.GREEN, "out %");
-        gd.line(DSout+"1", Color.BLUE, "in %");        
+        gd.area(DSinp+"1", Color.GREEN, "OUTPUT - bit/s");
+        gd.line(DSout+"1", Color.BLUE, "INPUT - bit/s");        
             //gd.hrule(20.0, Color.GREEN, "hrule");
             //gd.hspan(5.0, 9.0, Color.LIGHT_GRAY, "hspan");
             //gd.setAltAutoscale(true);
-            gd.setAltAutoscaleMax(true);
-            gd.setAltAutoscaleMin(false);
+            //gd.setAltAutoscaleMax(true);
+            //gd.setAltAutoscaleMin(false);
             //gd.setAltYGrid(true);
-            //gd.setAltYMrtg(true);
+            gd.setAltYMrtg(true);
             //gd.setAntiAliasing(true);
             //gd.setBase(1.0);
             //gd.setDrawXGrid(true);
@@ -88,8 +88,8 @@ public class RrdSnmp {
             //gd.setForceRulesLegend(true);
             //gd.setInterlaced(true);
             //gd.setLogarithmic(true);
-            gd.setMaxValue(100.0);
-            gd.setMinValue(0.0);
+            //gd.setMaxValue(100.0);
+            //gd.setMinValue(0.0);
             //gd.setPoolUsed(true);
             //gd.setRigid(true);
             //gd.setShowSignature(true);
@@ -104,8 +104,8 @@ public class RrdSnmp {
 
     public static RrdDef dbPrepare(String pathDB) {
         RrdDef rrdDef = new RrdDef(pathDB, step_d);
-        rrdDef.addDatasource(DSinp, DsType.GAUGE, heartbeat, 0.0, 100.0);
-        rrdDef.addDatasource(DSout, DsType.GAUGE, heartbeat, 0.0, 100.0);        
+        rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, 9_999888.0);
+        rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, 9_999888.0);        
         rrdDef.addArchive(CF, 0.5, 1, 1440); // day - 1 min
         rrdDef.addArchive(CF, 0.5, 7, 1440); // week - 7 min
         rrdDef.addArchive(CF, 0.5,28, 1440); // month=28day - 28 min
@@ -118,8 +118,8 @@ public class RrdSnmp {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
                 sample = rrdDb.createSample();
-                input = 1 + i;
-                output = numfor - i;
+                input  = i*numfor + i*numfor*(1+Math.random());
+                output = i*numfor + i*numfor*(1+Math.random());
                 sample.setTime(END + i * 60L);
                 sample.setValue(DSinp, input);
                 sample.setValue(DSout, output);
@@ -133,11 +133,11 @@ public class RrdSnmp {
             Logger.getLogger(RrdSnmp.class.getName()).log(Level.SEVERE, null, ex);
         }
         //////////////////                      DAY
-        rrdImgDraw("./img/loss-d.png", step_d, 1 * 86_400L, "Daily packet Loss in %");
+        rrdImgDraw("./img/loss-d.png", step_d, 1 * 86_400L, "Daily - 1 min average");
         ///////////////////////                 WEEK
-        rrdImgDraw("./img/loss-w.png", step_w, 7 * 86_400L, "Weekly packet Loss in %");
+        rrdImgDraw("./img/loss-w.png", step_w, 7 * 86_400L, "Weekly - 7 min average");
         ///////////////////////                 MONTH
-        rrdImgDraw("./img/loss-m.png", step_m,28 * 86_400L, "Monthly packet Loss in %");
+        rrdImgDraw("./img/loss-m.png", step_m,28 * 86_400L, "Monthly - 28 min average");
         ////////////////
         try {
             rrdDb.close();
@@ -168,7 +168,7 @@ public class RrdSnmp {
                 pb.directory(new File("./lib"));
                 pb.start();*/
                 Runtime.getRuntime().exec("java -jar ./lib/rrd4j-inspector-3.2.jar " + rrdPathDB);
-            } catch (Exception ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(RrdSnmp.class.getName()).log(Level.SEVERE, null, ex);
             }
         });  
