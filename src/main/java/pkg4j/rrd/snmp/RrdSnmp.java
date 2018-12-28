@@ -24,10 +24,10 @@ import org.rrd4j.data.Variable;
 
 public class RrdSnmp {
 
-    static long step_d = 60L, // sek
-            step_w = 420L,
-            step_m = 1680L,
-            heartbeat = 60L;
+    static long step_d =     60L, // sek
+                step_w =   7*60L,
+                step_m = 4*7*60L,
+                heartbeat  = 60L;
     static String rrdPathDB = "./rrd/my.rrd";
     static String DSinp = "ds-inp";
     static String DSout = "ds-out";
@@ -134,15 +134,15 @@ public class RrdSnmp {
         RrdDef rrdDef = new RrdDef(pathDB, step_d);
         rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);
         rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);        
-        rrdDef.addArchive(CF_AVE, 0.5, 1, 1440); // day - 1 min
-        rrdDef.addArchive(CF_AVE, 0.5, 7, 1440); // week - 7 min
-        rrdDef.addArchive(CF_AVE, 0.5,28, 1440); // month=28day - 28 min
-        rrdDef.addArchive(CF_MAX, 0.5, 1, 1440); // day - 1 min
-        rrdDef.addArchive(CF_MAX, 0.5, 7, 1440); // week - 7 min
-        rrdDef.addArchive(CF_MAX, 0.5,28, 1440); // month=28day - 28 min 
-        rrdDef.addArchive(CF_MIN, 0.5, 1, 1440); // day - 1 min
-        rrdDef.addArchive(CF_MIN, 0.5, 7, 1440); // week - 7 min
-        rrdDef.addArchive(CF_MIN, 0.5,28, 1440); // month=28day - 28 min             
+        rrdDef.addArchive(CF_AVE, 0.5, 1, 1440); // day   -     4*360=1440 min
+        rrdDef.addArchive(CF_AVE, 0.5, 7, 1440); // week  -   7*4*360=10080 min
+        rrdDef.addArchive(CF_AVE, 0.5,28, 1440); // month - 4*7*4*360=40320 min
+        rrdDef.addArchive(CF_MAX, 0.5, 1, 1440); 
+        rrdDef.addArchive(CF_MAX, 0.5, 7, 1440); 
+        rrdDef.addArchive(CF_MAX, 0.5,28, 1440); 
+        rrdDef.addArchive(CF_MIN, 0.5, 1, 1440); 
+        rrdDef.addArchive(CF_MIN, 0.5, 7, 1440); 
+        rrdDef.addArchive(CF_MIN, 0.5,28, 1440);      
         return rrdDef;
     }
     
@@ -152,8 +152,10 @@ public class RrdSnmp {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
                 sample = rrdDb.createSample();
-                input  = input  + i*numfor*(2+Math.random())*MAX_BANDWIDTH/99999;
-                output = output + i*numfor*(1+Math.random())*MAX_BANDWIDTH/99999;
+                input  = input  + i*numfor*(2)*MAX_BANDWIDTH/99999;
+                output = output + i*numfor*(1)*MAX_BANDWIDTH/99999;
+                //input  = input  + i*numfor*(2+Math.random())*MAX_BANDWIDTH/99999;
+                //output = output + i*numfor*(1+Math.random())*MAX_BANDWIDTH/99999;                
                 sample.setTime(END + i * 60L);
                 sample.setValue(DSinp, input);
                 sample.setValue(DSout, output);
