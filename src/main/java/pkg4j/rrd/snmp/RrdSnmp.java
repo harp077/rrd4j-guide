@@ -24,10 +24,11 @@ import org.rrd4j.data.Variable;
 
 public class RrdSnmp {
 
-    static long step_d =     60L, // sek
-                step_w =   7*60L,
-                step_m = 4*7*60L,
-                heartbeat  = 60L;
+    static int KOF=4;
+    static long step_d =     60L*KOF, // sek
+                step_w =   7*60L*KOF,
+                step_m = 4*7*60L*KOF,
+                heartbeat  = 60L*2*KOF;
     static String rrdPathDB = "./rrd/my.rrd";
     static String DSinp = "ds-inp";
     static String DSout = "ds-out";
@@ -39,9 +40,9 @@ public class RrdSnmp {
     static ConsolFun CF_CUR = ConsolFun.LAST;
     static Sample sample;
     static long END;
-    static long numfor = 999;
+    static long numfor = Math.round(1000/KOF);
     static RrdDb rrdDb;
-    static RrdSnmp rrdSnmp;
+    //static RrdSnmp rrdSnmp;
     static RrdGraphDef gd;
     static double MAX_BANDWIDTH=9_999_999_999.0; // 10 GBit/s
     // 1     Mbit/s =       999_999
@@ -88,7 +89,7 @@ public class RrdSnmp {
         //gD.setStartTime(-86400L);
         //gD.setEndTime(System.currentTimeMillis() / 1000);        
         //gD.setTimeSpan(-alltime, System.currentTimeMillis() / 1000+numfor*60L);
-        gd.setTimeSpan(-alltime + numfor * 60L, Util.getTimestamp() + numfor * 60L);
+        gd.setTimeSpan(Util.getTimestamp() - alltime + numfor * 60L * KOF, Util.getTimestamp() + numfor * 60L * KOF);
         //gd.setColor(RrdGraphConstants.COLOR_GRID, Color.LIGHT_GRAY);
         //gd.comment("\\r");
         gd.area(DSinp+"1", Color.GREEN, "INPUT - bit/s"); 
@@ -134,15 +135,15 @@ public class RrdSnmp {
         RrdDef rrdDef = new RrdDef(pathDB, step_d);
         rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);
         rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);        
-        rrdDef.addArchive(CF_AVE, 0.5, 1, 1440); // day   -     4*360=1440 min
-        rrdDef.addArchive(CF_AVE, 0.5, 7, 1440); // week  -   7*4*360=10080 min
-        rrdDef.addArchive(CF_AVE, 0.5,28, 1440); // month - 4*7*4*360=40320 min
-        rrdDef.addArchive(CF_MAX, 0.5, 1, 1440); 
-        rrdDef.addArchive(CF_MAX, 0.5, 7, 1440); 
-        rrdDef.addArchive(CF_MAX, 0.5,28, 1440); 
-        rrdDef.addArchive(CF_MIN, 0.5, 1, 1440); 
-        rrdDef.addArchive(CF_MIN, 0.5, 7, 1440); 
-        rrdDef.addArchive(CF_MIN, 0.5,28, 1440);      
+        rrdDef.addArchive(CF_AVE, 0.5, 1*KOF, 1440/KOF); // day   -     4*360=1440 min
+        rrdDef.addArchive(CF_AVE, 0.5, 7*KOF, 1440/KOF); // week  -   7*4*360=10080 min
+        rrdDef.addArchive(CF_AVE, 0.5,28*KOF, 1440/KOF); // month - 4*7*4*360=40320 min
+        rrdDef.addArchive(CF_MAX, 0.5, 1*KOF, 1440/KOF); 
+        rrdDef.addArchive(CF_MAX, 0.5, 7*KOF, 1440/KOF); 
+        rrdDef.addArchive(CF_MAX, 0.5,28*KOF, 1440/KOF); 
+        rrdDef.addArchive(CF_MIN, 0.5, 1*KOF, 1440/KOF); 
+        rrdDef.addArchive(CF_MIN, 0.5, 7*KOF, 1440/KOF); 
+        rrdDef.addArchive(CF_MIN, 0.5,28*KOF, 1440/KOF);      
         return rrdDef;
     }
     
@@ -152,11 +153,11 @@ public class RrdSnmp {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
                 sample = rrdDb.createSample();
-                input  = input  + i*numfor*(2)*MAX_BANDWIDTH/99999;
-                output = output + i*numfor*(1)*MAX_BANDWIDTH/99999;
+                input  = input  + KOF*i*numfor*(2)*MAX_BANDWIDTH/99999;
+                output = output + KOF*i*numfor*(1)*MAX_BANDWIDTH/99999;
                 //input  = input  + i*numfor*(2+Math.random())*MAX_BANDWIDTH/99999;
                 //output = output + i*numfor*(1+Math.random())*MAX_BANDWIDTH/99999;                
-                sample.setTime(END + i * 60L);
+                sample.setTime(END + i * 60L * KOF);
                 sample.setValue(DSinp, input);
                 sample.setValue(DSout, output);
                 //sample.setAndUpdate(END + i * 60L + ":" + input);
@@ -169,11 +170,11 @@ public class RrdSnmp {
             Logger.getLogger(RrdSnmp.class.getName()).log(Level.SEVERE, null, ex);
         }
         //////////////////                      DAY
-        rrdImgDraw("./img/loss-d.png", step_d, 1 * 86_400L, "Daily - 1 min average");
+        rrdImgDraw("./img/loss-d.png", step_d, 1 * 86_400L, "Daily - "   +1*KOF+" min average");
         ///////////////////////                 WEEK
-        rrdImgDraw("./img/loss-w.png", step_w, 7 * 86_400L, "Weekly - 7 min average");
+        rrdImgDraw("./img/loss-w.png", step_w, 7 * 86_400L, "Weekly - "  +7*KOF+" min average");
         ///////////////////////                 MONTH
-        rrdImgDraw("./img/loss-m.png", step_m,28 * 86_400L, "Monthly - 28 min average");
+        rrdImgDraw("./img/loss-m.png", step_m,28 * 86_400L, "Monthly - "+28*KOF+" min average");
         ////////////////
         try {
             rrdDb.close();
