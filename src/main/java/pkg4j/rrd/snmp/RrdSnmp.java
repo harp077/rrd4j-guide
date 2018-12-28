@@ -132,7 +132,8 @@ public class RrdSnmp {
     }
 
     public static RrdDef dbPrepare(String pathDB) {
-        RrdDef rrdDef = new RrdDef(pathDB, step_d);
+        // !!!!!! - fixed step=60L !!!!!!!
+        RrdDef rrdDef = new RrdDef(pathDB, 60L);
         rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);
         rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);        
         rrdDef.addArchive(CF_AVE, 0.5, 1*KOF, 1440/KOF); // day   -     4*360=1440 min
