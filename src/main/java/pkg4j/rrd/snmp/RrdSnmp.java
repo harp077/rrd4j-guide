@@ -20,6 +20,7 @@ import org.rrd4j.core.Util;
 import org.rrd4j.graph.RrdGraph;
 import org.rrd4j.graph.RrdGraphConstants;
 import org.rrd4j.graph.RrdGraphDef;
+import org.rrd4j.data.Variable;
 
 public class RrdSnmp {
 
@@ -32,7 +33,10 @@ public class RrdSnmp {
     static String DSout = "ds-out";
     static double input;
     static double output;
-    static ConsolFun CF = ConsolFun.AVERAGE;
+    static ConsolFun CF_AVE = ConsolFun.AVERAGE;
+    static ConsolFun CF_MAX = ConsolFun.MAX;
+    static ConsolFun CF_MIN = ConsolFun.MIN;
+    static ConsolFun CF_CUR = ConsolFun.LAST;
     static Sample sample;
     static long END;
     static long numfor = 999;
@@ -70,16 +74,34 @@ public class RrdSnmp {
         gd.setTitle(title);
         gd.setVerticalLabel("bit/s");
         //gd.comment("comment");
-        gd.datasource(DSinp+"1", rrdPathDB, DSinp, CF);
-        gd.datasource(DSout+"1", rrdPathDB, DSout, CF);
+        gd.datasource(DSinp+"1", rrdPathDB, DSinp, CF_AVE);
+        gd.datasource(DSout+"1", rrdPathDB, DSout, CF_AVE);
+        gd.datasource("max-inp", DSinp+"1", new Variable.MAX());
+        gd.datasource("cur-inp", DSinp+"1", new Variable.LAST());
+        gd.datasource("min-inp", DSinp+"1", new Variable.MIN());        
+        gd.datasource("ave-inp", DSinp+"1", new Variable.AVERAGE());
+        gd.datasource("max-out", DSout+"1", new Variable.MAX());
+        gd.datasource("cur-out", DSout+"1", new Variable.LAST());
+        gd.datasource("min-out", DSout+"1", new Variable.MIN());        
+        gd.datasource("ave-out", DSout+"1", new Variable.AVERAGE());          
         gd.setStep(step);
         //gD.setStartTime(-86400L);
         //gD.setEndTime(System.currentTimeMillis() / 1000);        
         //gD.setTimeSpan(-alltime, System.currentTimeMillis() / 1000+numfor*60L);
         gd.setTimeSpan(-alltime + numfor * 60L, Util.getTimestamp() + numfor * 60L);
         //gd.setColor(RrdGraphConstants.COLOR_GRID, Color.LIGHT_GRAY);
-        gd.area(DSinp+"1", Color.GREEN, "OUTPUT - bit/s");
-        gd.line(DSout+"1", Color.BLUE, "INPUT - bit/s");        
+        //gd.comment("\\r");
+        gd.area(DSinp+"1", Color.GREEN, "INPUT - bit/s"); 
+        gd.gprint("min-inp", "input minimum = %.3f%s"); 
+        gd.gprint("cur-inp", "input current = %.3f%s");
+        gd.gprint("max-inp", "input maximum = %.3f%s");
+        gd.gprint("ave-inp", "input average = %.3f%s");  
+        gd.comment("\r");        
+        gd.line(DSout+"1", Color.BLUE, "OUTPUT - bit/s"); 
+        gd.gprint("min-out", "output minimum = %.3f%s"); 
+        gd.gprint("cur-out", "output current = %.3f%s");
+        gd.gprint("max-out", "output maximum = %.3f%s");
+        gd.gprint("ave-out", "output average = %.3f%s");          
             //gd.hrule(20.0, Color.GREEN, "hrule");
             //gd.hspan(5.0, 9.0, Color.LIGHT_GRAY, "hspan");
             //gd.setAltAutoscale(true);
@@ -112,9 +134,15 @@ public class RrdSnmp {
         RrdDef rrdDef = new RrdDef(pathDB, step_d);
         rrdDef.addDatasource(DSinp, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);
         rrdDef.addDatasource(DSout, DsType.COUNTER, heartbeat, 0.0, MAX_BANDWIDTH);        
-        rrdDef.addArchive(CF, 0.5, 1, 1440); // day - 1 min
-        rrdDef.addArchive(CF, 0.5, 7, 1440); // week - 7 min
-        rrdDef.addArchive(CF, 0.5,28, 1440); // month=28day - 28 min
+        rrdDef.addArchive(CF_AVE, 0.5, 1, 1440); // day - 1 min
+        rrdDef.addArchive(CF_AVE, 0.5, 7, 1440); // week - 7 min
+        rrdDef.addArchive(CF_AVE, 0.5,28, 1440); // month=28day - 28 min
+        rrdDef.addArchive(CF_MAX, 0.5, 1, 1440); // day - 1 min
+        rrdDef.addArchive(CF_MAX, 0.5, 7, 1440); // week - 7 min
+        rrdDef.addArchive(CF_MAX, 0.5,28, 1440); // month=28day - 28 min 
+        rrdDef.addArchive(CF_MIN, 0.5, 1, 1440); // day - 1 min
+        rrdDef.addArchive(CF_MIN, 0.5, 7, 1440); // week - 7 min
+        rrdDef.addArchive(CF_MIN, 0.5,28, 1440); // month=28day - 28 min             
         return rrdDef;
     }
     
