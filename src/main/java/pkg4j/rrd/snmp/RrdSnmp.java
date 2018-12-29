@@ -24,7 +24,7 @@ import org.rrd4j.data.Variable;
 
 public class RrdSnmp {
 
-    static int KOF=4;
+    static int KOF=2;
     static long step_d =     60L*KOF, // sek
                 step_w =   7*60L*KOF,
                 step_m = 4*7*60L*KOF,
@@ -91,18 +91,19 @@ public class RrdSnmp {
         //gD.setTimeSpan(-alltime, System.currentTimeMillis() / 1000+numfor*60L);
         gd.setTimeSpan(Util.getTimestamp() - alltime + numfor * 60L * KOF, Util.getTimestamp() + numfor * 60L * KOF);
         //gd.setColor(RrdGraphConstants.COLOR_GRID, Color.LIGHT_GRAY);
-        //gd.comment("\\r");
-        gd.area(DSinp+"1", Color.GREEN, "INPUT - bit/s"); 
-        gd.gprint("min-inp", "input minimum = %.3f%s"); 
-        gd.gprint("cur-inp", "input current = %.3f%s");
-        gd.gprint("max-inp", "input maximum = %.3f%s");
-        gd.gprint("ave-inp", "input average = %.3f%s");  
-        gd.comment("\r");        
-        gd.line(DSout+"1", Color.BLUE, "OUTPUT - bit/s"); 
-        gd.gprint("min-out", "output minimum = %.3f%s"); 
-        gd.gprint("cur-out", "output current = %.3f%s");
-        gd.gprint("max-out", "output maximum = %.3f%s");
-        gd.gprint("ave-out", "output average = %.3f%s");          
+        //gd.comment("\\r"); // right align
+        gd.area(DSinp+"1", Color.GREEN, " INPUT - bit/s, "); 
+        gd.gprint("min-inp", "MINIMUM = %.3f%s, "); 
+        gd.gprint("ave-inp", "AVERAGE = %.3f%s, "); 
+        gd.gprint("max-inp", "MAXIMUM = %.3f%s, ");        
+        gd.gprint("cur-inp", "CURRENT = %.3f%s, ");        
+        gd.comment("\\l"); // left align       
+        gd.line(DSout+"1", Color.BLUE, "OUTPUT - bit/s, "); 
+        gd.gprint("min-out", "MINIMUM = %.3f%s, "); 
+        gd.gprint("ave-out", "AVERAGE = %.3f%s, ");
+        gd.gprint("max-out", "MAXIMUM = %.3f%s, ");        
+        gd.gprint("cur-out", "CURRENT = %.3f%s, ");        
+        gd.comment("\\l");  // left align
             //gd.hrule(20.0, Color.GREEN, "hrule");
             //gd.hspan(5.0, 9.0, Color.LIGHT_GRAY, "hspan");
             //gd.setAltAutoscale(true);
@@ -154,8 +155,8 @@ public class RrdSnmp {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
                 sample = rrdDb.createSample();
-                input  = input  + KOF*i*numfor*(2)*MAX_BANDWIDTH/99999;
-                output = output + KOF*i*numfor*(1)*MAX_BANDWIDTH/99999;
+                input  = input  + 2*KOF*i*numfor*(2)*MAX_BANDWIDTH/99999;
+                output = output + 2*KOF*i*numfor*(1)*MAX_BANDWIDTH/99999;
                 //input  = input  + i*numfor*(2+Math.random())*MAX_BANDWIDTH/99999;
                 //output = output + i*numfor*(1+Math.random())*MAX_BANDWIDTH/99999;                
                 sample.setTime(END + i * 60L * KOF);
