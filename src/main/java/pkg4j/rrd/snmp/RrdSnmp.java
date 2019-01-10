@@ -60,14 +60,14 @@ public class RrdSnmp {
             FileUtils.forceMkdir(new File("./rrd"));
         } catch (IOException ex) {   }*/        
         try {
-            snmp_RrdDb = new RrdDb(dbPrepare(rrdPathDB));
+            snmp_RrdDb = new RrdDb(snmp_DbPrepare(rrdPathDB));
             //rrdDb = new RrdDb("./rrd/my.rrd"); // open RW exists
         } catch (IOException ex) {
             Logger.getLogger(RrdSnmp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public static void snmp_imgDraw(String fname, long step, long alltime, String title) {
+    public static void snmp_imgDraw(String pathDB, String fname, long step, long alltime, String title) {
         gd = new RrdGraphDef();
         gd.setWidth(720);
         gd.setHeight(150);
@@ -75,8 +75,8 @@ public class RrdSnmp {
         gd.setTitle(title);
         gd.setVerticalLabel("bit/s");
         //gd.comment("comment");
-        gd.datasource(snmp_DSinp+"1", rrdPathDB, snmp_DSinp, snmp_CF_AVE);
-        gd.datasource(snmp_DSout+"1", rrdPathDB, snmp_DSout, snmp_CF_AVE);
+        gd.datasource(snmp_DSinp+"1", pathDB, snmp_DSinp, snmp_CF_AVE);
+        gd.datasource(snmp_DSout+"1", pathDB, snmp_DSout, snmp_CF_AVE);
         gd.datasource("max-inp", snmp_DSinp+"1", new Variable.MAX());
         gd.datasource("cur-inp", snmp_DSinp+"1", new Variable.LAST());
         gd.datasource("min-inp", snmp_DSinp+"1", new Variable.MIN());        
@@ -132,7 +132,7 @@ public class RrdSnmp {
         }
     }
 
-    public static RrdDef dbPrepare(String pathDB) {
+    public static RrdDef snmp_DbPrepare(String pathDB) {
         // !!!!!! - fixed step=60L !!!!!!!
         RrdDef rrdDef = new RrdDef(pathDB, 60L);
         rrdDef.addDatasource(snmp_DSinp, DsType.COUNTER, snmp_heartbeat, 0.0, MAX_BANDWIDTH);
@@ -150,7 +150,7 @@ public class RrdSnmp {
     }
     
     public static void main(String[] args) {
-        //try (RrdDb snmp_RrdDb = new RrdDb(dbPrepare())) {
+        //try (RrdDb snmp_RrdDb = new RrdDb(snmp_DbPrepare())) {
         try {
             END = Util.getTimestamp();//System.currentTimeMillis();//Util.getTimestamp();
             for (int i = 0; i < numfor; i++) {
@@ -172,11 +172,11 @@ public class RrdSnmp {
             Logger.getLogger(RrdSnmp.class.getName()).log(Level.SEVERE, null, ex);
         }
         //////////////////                      DAY
-        snmp_imgDraw("./img/loss-d.png", snmp_step_d, 1 * 86_400L, "Daily - "   +1*snmp_KOF+" min average");
+        snmp_imgDraw(rrdPathDB,"./img/loss-d.png", snmp_step_d, 1 * 86_400L, "Daily - "   +1*snmp_KOF+" min average");
         ///////////////////////                 WEEK
-        snmp_imgDraw("./img/loss-w.png", snmp_step_w, 7 * 86_400L, "Weekly - "  +7*snmp_KOF+" min average");
+        snmp_imgDraw(rrdPathDB,"./img/loss-w.png", snmp_step_w, 7 * 86_400L, "Weekly - "  +7*snmp_KOF+" min average");
         ///////////////////////                 MONTH
-        snmp_imgDraw("./img/loss-m.png", snmp_step_m,28 * 86_400L, "Monthly - "+28*snmp_KOF+" min average");
+        snmp_imgDraw(rrdPathDB,"./img/loss-m.png", snmp_step_m,28 * 86_400L, "Monthly - "+28*snmp_KOF+" min average");
         ////////////////
         try {
             snmp_RrdDb.close();
